@@ -40,12 +40,23 @@ public class DotTreeViewer extends TreeViewer {
         for(Node child:node.getChildren()){
             nodeId++;
             if(child.getChildren().isEmpty()){
-                prepareTerminal(bw, nodeId, child);
                 draw(bw, currentId, nodeId);
             }else{
-                addLabel(bw, node, currentId);
                 draw(bw, currentId, nodeId);
                 drawNode(bw, child);
+            }
+        }
+    }
+    private void prepare(BufferedWriter bw, Node node) throws IOException {
+        int currentId = nodeId;
+        for(Node child:node.getChildren()){
+            nodeId++;
+            if(child.getChildren().isEmpty()){
+                prepareTerminal(bw, nodeId, child);
+
+            }else{
+                addLabel(bw,  child, nodeId);
+                prepare(bw, child);
             }
         }
     }
@@ -57,6 +68,9 @@ public class DotTreeViewer extends TreeViewer {
         bw.write("digraph G {\n" +
                 "node [shape=box];");
         bw.newLine();
+        addLabel(bw,root,0);
+        prepare(bw, root);
+        nodeId = 0;
         drawNode(bw, root);
         bw.write("}");
 
