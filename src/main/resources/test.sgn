@@ -1,0 +1,35 @@
+program prog1;
+
+const
+   const1=1212;
+    const2=-3223;
+    const3=100;
+    val7= 10#+10;
+
+var
+
+    val1:signal;
+    val2:integer;
+    val3:float;
+    val4: blockfloat;
+    val5: ext;
+    val6: [100..200, 250..300];
+
+
+begin
+
+    loop
+     for val2:= val4 to 2+(2*val3) do
+         case val1 of
+            1:/\
+            88:/\
+            3:/loop endloop;\
+           endcase;
+
+       endfor;
+
+    endloop;
+
+end.
+
+<*This comment doesnt close*>
