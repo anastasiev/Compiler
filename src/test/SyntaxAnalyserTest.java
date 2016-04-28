@@ -48,24 +48,9 @@ public class SyntaxAnalyserTest {
             TreeViewer viewer = new DotTreeViewer("test.gv", syntaxAnalyser.getTree().getRoot());
             viewer.parseTree();
         }catch (Exception ex){
-
+            System.out.println("Something was wrong");
         }
 
-    }
-
-    @Test
-    public void springTest()throws Exception{
-        ApplicationContext ctx = new ClassPathXmlApplicationContext("spring.xml");
-        LexAnalyser analyser = (LexAnalyser) ctx.getBean("lexAnalyser");
-        SyntaxAnalyser syntaxAnalyser = (SyntaxAnalyser) ctx.getBean("syntaxAnalyser");
-
-        InputStreamReader inp = new InputStreamReader(
-                new FileInputStream("/home/dmytro/IdeaProjects/Compiler/src/main/resources/test.sgn"));
-        CharReader reader = new CharReader(inp);
-
-        analyser.analyse(reader);
-        syntaxAnalyser.setLexems(analyser.getLexems());
-        syntaxAnalyser.analyse();
     }
 
 }
