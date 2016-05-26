@@ -55,8 +55,11 @@ public class SyntaxAnalyser extends Analyser{
     }
 
     private void makeError(String message, ListIterator<Lexem> it) throws SAException {
-        it.previous();
-        int lineNum = it.previous().getLineNum();
+        if(it.hasPrevious())
+            it.previous();
+        int lineNum = 1;
+        if(it.hasPrevious())
+            lineNum = it.previous().getLineNum();
         it.next();
         it.next();
         SAException ex = new SAException(message + " in line " + lineNum);
@@ -93,7 +96,7 @@ public class SyntaxAnalyser extends Analyser{
     }
     private void block(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
         tree.next(node);
-//        declarations(it, tree.add("declarations"));
+        declarations(it, tree.add("declarations"));
         if(KeyWords.BEGIN.equals(it.next().getName())){
             tree.add("BEGIN");
 
@@ -139,7 +142,7 @@ public class SyntaxAnalyser extends Analyser{
     private void declarations(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
         tree.next(node);
 
-        labelDeclarations(it,  tree.add("labelDeclarations"));
+//        labelDeclarations(it,  tree.add("labelDeclarations"));
 
         constDeclarations(it, tree.add("constDeclarations"));
 
@@ -306,30 +309,25 @@ public class SyntaxAnalyser extends Analyser{
     }
 
     private void expression(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
-
         tree.next(node);
-        multiplier(it, tree.add("multiplier"));
-        multipliersList(it, tree.add("multipliersList"));
+        try {
+            if (Delimeters.SUB.equals(it.next().getName())) {
+                tree.add("-");
+                summand(it, tree.add("summand"));
+                summandList(it, tree.add("summandList"));
+            } else {
+                it.previous();
+                summand(it, tree.add("summand"));
+                summandList(it, tree.add("summandList"));
+            }
+        }catch (SAException ex){
+            if(!ex.isError()) {
+                it.previous();
+                tree.removeChain(node);
+            }else
+                throw ex;
+        }
         tree.previous();
-//        tree.next(node);
-//        try {
-//            if (Delimeters.SUB.equals(it.next().getName())) {
-//                tree.add("-");
-//                summand(it, tree.add("summand"));
-//                summandList(it, tree.add("summandList"));
-//            } else {
-//                it.previous();
-//                summand(it, tree.add("summand"));
-//                summandList(it, tree.add("summandList"));
-//            }
-//        }catch (SAException ex){
-//            if(!ex.isError()) {
-//                it.previous();
-//                tree.removeChain(node);
-//            }else
-//                throw ex;
-//        }
-//        tree.previous();
     }
 
     private void summand(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{

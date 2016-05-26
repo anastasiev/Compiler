@@ -1,12 +1,10 @@
 program prog1;
 
-label 1,2,3;
-
 const
    const1=1212;
-    const2=-3223;
+    const2=3223;
     const3=100;
-    val7= 10#+10;
+    val7= 5;
 
 var
 
@@ -22,8 +20,9 @@ var
 
 begin
 
+
     loop
-     for val2:= val4 to 2+(2*val3) do
+        for val2:= 1 to 10 do
          case val1 of
             1:/\
             88:/\
@@ -35,5 +34,3 @@ begin
     endloop;
 
 end.
-
-<*This comment doesnt close*>

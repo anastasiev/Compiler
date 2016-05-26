@@ -1,40 +1,24 @@
+import analizer.CodeGenerator;
 import analizer.LexAnalyser;
 import analizer.SyntaxAnalyser;
 import data.CharReader;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import tree.Node;
 import view.DotTreeViewer;
 import view.TreeViewer;
 
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
 
 import static org.junit.Assert.*;
 
 /**
- * Created by dmytro on 16.04.16.
+ * Created by dmytro on 26.05.16.
  */
-public class SyntaxAnalyserTest {
-    @Test
-    public void listTest()throws Exception{
-        List<Integer> list = new ArrayList<>();
-        list.add(1);
-        list.add(2);
-        list.add(3);
-        ListIterator<Integer> it = list.listIterator();
-        System.out.println(it.next());
-        System.out.println(it.next());
-        System.out.println(it.previous());
-        System.out.println(it.previous());
-        System.out.println(it.next());
+public class CodeGeneratorTest {
 
-    }
     @Test
-    public void analyseTest()throws Exception{
+    public void testMakeConst() throws Exception {
         LexAnalyser analyser = new LexAnalyser();
         InputStreamReader inp = new InputStreamReader(
                 new FileInputStream("/home/dmytro/IdeaProjects/Compiler/src/main/resources/test.sgn"));
@@ -47,10 +31,14 @@ public class SyntaxAnalyserTest {
             syntaxAnalyser.analyse();
             TreeViewer viewer = new DotTreeViewer("test.gv", syntaxAnalyser.getTree().getRoot());
             viewer.parseTree();
+            Node root = syntaxAnalyser.getTree().getRoot();
+            root = root.getChildren().get(3); //get block node
+            CodeGenerator generator = new CodeGenerator(root);
+
+            generator.generateCode();
+            generator.createAsmFile();
         }catch (Exception ex){
             System.out.println("Something was wrong");
         }
-
     }
-
 }
