@@ -1,0 +1,13 @@
+program prog1;
+
+begin
+
+    loop
+     case 2*3*5 of
+        1:/\
+        88:/\
+        8:/loop endloop;\
+      endcase;
+
+    endloop;
+end.

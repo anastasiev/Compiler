@@ -81,6 +81,7 @@ public class LexAnalyser extends Analyser {
         singleSymTable.put(Delimeters.SQUARE_BRACKET_E, Integer.valueOf(Delimeters.SQUARE_BRACKET_E.charAt(0)));
         singleSymTable.put(Delimeters.FULL_STOP, Integer.valueOf(Delimeters.FULL_STOP.charAt(0)));
     }
+    private int currentLine = 1;
     //
     private boolean isLet(char c){
         if(c >= 65 && c<=90)
@@ -96,8 +97,9 @@ public class LexAnalyser extends Analyser {
     }
     //
     private boolean isSpaces(char c){
-        if(c == 32 || c == 9 || c == 11 || c == 10 || c == 13)
+        if(c == 32 || c == 9 || c == 11 || c == 10 || c == 13) {
             return true;
+        }
         return false;
     }
 
@@ -222,11 +224,11 @@ public class LexAnalyser extends Analyser {
             if(isLet(lineChar.get())){
                 String word = makeWord(lineChar);
                 if(keyWordTable.containsKey(word))
-                    lexems.add(new Lexem(word, keyWordTable.get(word)));
+                    lexems.add(new Lexem(word, keyWordTable.get(word), currentLine));
                 else{
                     if(!identTable.containsKey(word))
                         identTable.put(word, ++lastIdentCode);
-                    lexems.add(new Lexem(word, identTable.get(word)));
+                    lexems.add(new Lexem(word, identTable.get(word), currentLine));
                 }
                 continue;
             }
@@ -239,11 +241,11 @@ public class LexAnalyser extends Analyser {
                     if(number != null) {
                         if (!constantTable.containsKey(number))
                             constantTable.put(number, ++lastConstantCode);
-                        lexems.add(new Lexem(number, constantTable.get(number)));
+                        lexems.add(new Lexem(number, constantTable.get(number), currentLine));
                     }
 
                 } catch (InvalidIDException e) {
-                    lexems.add(new Lexem(e.getInvalidId(), -1));
+                    lexems.add(new Lexem(e.getInvalidId(), -1, currentLine));
                 }finally {
                     if(number != null)
                         continue;
@@ -256,15 +258,17 @@ public class LexAnalyser extends Analyser {
                     String number = makeNumber(lineChar);
                     if(!constantTable.containsKey(number))
                         constantTable.put(number, ++lastConstantCode);
-                    lexems.add(new Lexem(number, constantTable.get(number)));
+                    lexems.add(new Lexem(number, constantTable.get(number), currentLine));
                 } catch (InvalidIDException e) {
-                    lexems.add(new Lexem(e.getInvalidId(), -1));
+                    lexems.add(new Lexem(e.getInvalidId(), -1, currentLine));
                 }finally {
                     continue;
                 }
             }
             //seperate spaces
             if(isSpaces(lineChar.get())){
+                if (lineChar.get() == '\n')
+                    currentLine++;
                 lineChar.remove();
                 continue;
             }
@@ -281,19 +285,19 @@ public class LexAnalyser extends Analyser {
             String delim = makeDelimiter(lineChar);
             if(delim != null) {
                 if (delim.length() == 2)
-                    lexems.add(new Lexem(delim, doubleSymTable.get(delim)));
+                    lexems.add(new Lexem(delim, doubleSymTable.get(delim), currentLine));
                 else
-                    lexems.add(new Lexem(delim, singleSymTable.get(delim)));
+                    lexems.add(new Lexem(delim, singleSymTable.get(delim),currentLine));
                 continue;
             }
 
             //unknown symbol
 
-            lexems.add(new Lexem(String.valueOf(lineChar.remove()) , -1));
+            lexems.add(new Lexem(String.valueOf(lineChar.remove()) , -1, currentLine));
 
         }
         if(commentFlag)
-            lexems.add(new Lexem(KeyWords.ERROR, -1));
+            lexems.add(new Lexem(KeyWords.ERROR, -1,currentLine));
     }
 
 

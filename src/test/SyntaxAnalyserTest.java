@@ -37,7 +37,7 @@ public class SyntaxAnalyserTest {
     public void analyseTest()throws Exception{
         LexAnalyser analyser = new LexAnalyser();
         InputStreamReader inp = new InputStreamReader(
-                new FileInputStream("/home/dmytro/IdeaProjects/Compiler/src/main/resources/test.sgn"));
+                new FileInputStream("/home/dmytro/IdeaProjects/Compiler/src/main/resources/test_matush.sgn"));
         CharReader reader = new CharReader(inp);
         analyser.analyse(reader);
         reader.close();

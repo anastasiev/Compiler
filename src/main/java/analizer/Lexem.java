@@ -6,10 +6,12 @@ package analizer;
 public class Lexem {
     private String name;
     private int code;
+    private int lineNum;
 
-    public Lexem(String name, int code) {
+    public Lexem(String name, int code, int lineNum) {
         this.name = name;
         this.code = code;
+        this.lineNum = lineNum;
     }
 
     public String getName() {
@@ -31,5 +33,9 @@ public class Lexem {
 
     public String toString(){
         return name + ": " + code;
+    }
+
+    public int getLineNum() {
+        return lineNum;
     }
 }

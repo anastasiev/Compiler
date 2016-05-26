@@ -1,5 +1,7 @@
 program prog1;
 
+label 1,2,3;
+
 const
    const1=1212;
     const2=-3223;
@@ -14,6 +16,8 @@ var
     val4: blockfloat;
     val5: ext;
     val6: [100..200, 250..300];
+
+
 
 
 begin

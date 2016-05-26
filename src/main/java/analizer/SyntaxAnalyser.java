@@ -54,8 +54,12 @@ public class SyntaxAnalyser extends Analyser{
         return false;
     }
 
-    private void makeError(String message) throws SAException {
-        SAException ex = new SAException(message);
+    private void makeError(String message, ListIterator<Lexem> it) throws SAException {
+        it.previous();
+        int lineNum = it.previous().getLineNum();
+        it.next();
+        it.next();
+        SAException ex = new SAException(message + " in line " + lineNum);
         ex.setError(true);
         throw ex;
     }
@@ -70,14 +74,14 @@ public class SyntaxAnalyser extends Analyser{
 
                 block(it, tree.add("block"));
                 if(!Delimeters.FULL_STOP.equals(it.next().getName())){
-                    makeError(". excepted");
+                    makeError(". excepted", it);
                 }
                 tree.add(".");
             }else{
-                makeError("; excepted");
+                makeError("; excepted", it);
             }
         }else{
-            makeError("PROGRAM excepted");
+            makeError("PROGRAM excepted", it);
         }
 
     }
@@ -89,13 +93,13 @@ public class SyntaxAnalyser extends Analyser{
     }
     private void block(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
         tree.next(node);
-        declarations(it, tree.add("declarations"));
+//        declarations(it, tree.add("declarations"));
         if(KeyWords.BEGIN.equals(it.next().getName())){
             tree.add("BEGIN");
 
             statementList(it, tree.add("statementList"));
             if(!KeyWords.END.equals(it.next().getName())){
-                makeError("END excepted");
+                makeError("END excepted", it);
             }
             tree.add("END");
         }
@@ -111,7 +115,7 @@ public class SyntaxAnalyser extends Analyser{
             }
             tree.add(lex.getName());
         }else{
-            makeError("identifier excepted");
+            makeError("identifier excepted", it);
         }
         tree.previous();
     }
@@ -122,12 +126,12 @@ public class SyntaxAnalyser extends Analyser{
             Lexem lex =  it.next();
             if (!isConstant(lex.getCode())) {
                 if(!(it.hasNext() && Delimeters.SUB.equals(lex.getName()) && isConstant(it.next().getCode()))){
-                    makeError("constant excepted");
+                    makeError("constant excepted", it);
                 }
             }
             tree.add(lex.getName());
         }else{
-            makeError("constant excepted");
+            makeError("constant excepted", it);
         }
         tree.previous();
     }
@@ -135,12 +139,49 @@ public class SyntaxAnalyser extends Analyser{
     private void declarations(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
         tree.next(node);
 
+        labelDeclarations(it,  tree.add("labelDeclarations"));
+
         constDeclarations(it, tree.add("constDeclarations"));
 
 
         varDeclarations(it,  tree.add("varDeclarations"));
+
+
         tree.previous();
     }
+    private void labelDeclarations(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException {
+        tree.next(node);
+        if("LABEL".equals(it.next().getName())) {
+            tree.add("LABEL");
+            labelList(it, tree.add("labelList"));
+
+            if(!Delimeters.STOP_LINE.equals(it.next().getName())) {
+                makeError("; excepted", it);
+            }
+            tree.add(";");
+        }else{
+            makeError("LABEL excepted", it);
+        }
+
+        tree.previous();
+    }
+    private void labelList(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException {
+        tree.next(node);
+        label(it, tree.add("label"));
+        if(Delimeters.COMA.equals(it.next().getName())){
+            tree.add(",");
+            labelList(it, tree.add("labelList"));
+        }else{
+            it.previous();
+        }
+        tree.previous();
+    }
+    private void label(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException {
+        tree.next(node);
+        constant(it, tree.add("constant"));
+        tree.previous();
+    }
+
 
     private void statementList(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
         tree.next(node);
@@ -164,25 +205,25 @@ public class SyntaxAnalyser extends Analyser{
             tree.add(lex.getName());
             statementList(it, tree.add("statementList"));
             if(!KeyWords.ENDLOOP.equals(it.next().getName())){
-                makeError("ENDLOOP excepted");
+                makeError("ENDLOOP excepted", it);
             }
             tree.add("ENDLOOP");
         }else if(KeyWords.FOR.equals(lex.getName())){
             tree.add(lex.getName());
             Lexem forIndex = it.next();
             if(!varIdentSet.contains(forIndex.getName())){
-                makeError(forIndex.getName() + " is not variable");
+                makeError(forIndex.getName() + " is not variable", it);
             }
             tree.add(forIndex.getName());
             if(Delimeters.APPROPRIATE.equals(it.next().getName())){
                 tree.add(":=");
                 loopDeclarations(it, tree.add("loopDeclarations"));
                 if(!KeyWords.ENDFOR.equals(it.next().getName())){
-                    makeError("ENDFOR excepted");
+                    makeError("ENDFOR excepted", it);
                 }
                 tree.add("ENDFOR");
             }else{
-                makeError(":= excepted");
+                makeError(":= excepted", it);
             }
 
         }else if(KeyWords.CASE.equals(lex.getName())){
@@ -192,17 +233,17 @@ public class SyntaxAnalyser extends Analyser{
                 tree.add("OF");
                 alternativeList(it, tree.add("alternativeList"));
                 if(!KeyWords.ENDCASE.equals(it.next().getName())){
-                    makeError("ENDCASE excepted");
+                    makeError("ENDCASE excepted", it);
                 }
                 tree.add("ENDCASE");
             }else{
-                makeError("OF excepted");
+                makeError("OF excepted", it);
             }
         }else{
             throw new SAException("unknown statement");
         }
         if(!Delimeters.STOP_LINE.equals(it.next().getName())){
-            makeError("; excepted");
+            makeError("; excepted", it);
         }
         tree.add(";");
         tree.previous();
@@ -234,14 +275,14 @@ public class SyntaxAnalyser extends Analyser{
                 tree.add("/");
                 statementList(it, tree.add("statementList"));
                 if(!Delimeters.BACK_SLESH.equals(it.next().getName())){
-                    makeError("\\ excepted");
+                    makeError("\\ excepted", it);
                 }
                 tree.add("\\");
             }else{
-                makeError("/ excepted");
+                makeError("/ excepted", it);
             }
         }else{
-            makeError(": excepted");
+            makeError(": excepted", it);
         }
         tree.previous();
     }
@@ -256,34 +297,39 @@ public class SyntaxAnalyser extends Analyser{
                 tree.add("DO");
                 statementList(it, tree.add("statementList"));
             }else{
-                makeError("DO excepted");
+                makeError("DO excepted", it);
             }
         }else{
-            makeError("TO excepted");
+            makeError("TO excepted", it);
         }
         tree.previous();
     }
 
     private void expression(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
+
         tree.next(node);
-        try {
-            if (Delimeters.SUB.equals(it.next().getName())) {
-                tree.add("-");
-                summand(it, tree.add("summand"));
-                summandList(it, tree.add("summandList"));
-            } else {
-                it.previous();
-                summand(it, tree.add("summand"));
-                summandList(it, tree.add("summandList"));
-            }
-        }catch (SAException ex){
-            if(!ex.isError()) {
-                it.previous();
-                tree.removeChain(node);
-            }else
-                throw ex;
-        }
+        multiplier(it, tree.add("multiplier"));
+        multipliersList(it, tree.add("multipliersList"));
         tree.previous();
+//        tree.next(node);
+//        try {
+//            if (Delimeters.SUB.equals(it.next().getName())) {
+//                tree.add("-");
+//                summand(it, tree.add("summand"));
+//                summandList(it, tree.add("summandList"));
+//            } else {
+//                it.previous();
+//                summand(it, tree.add("summand"));
+//                summandList(it, tree.add("summandList"));
+//            }
+//        }catch (SAException ex){
+//            if(!ex.isError()) {
+//                it.previous();
+//                tree.removeChain(node);
+//            }else
+//                throw ex;
+//        }
+//        tree.previous();
     }
 
     private void summand(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
@@ -332,7 +378,7 @@ public class SyntaxAnalyser extends Analyser{
             tree.add("(");
             expression(it, tree.add("expression"));
             if(!Delimeters.RBRACKET.equals(it.next().getName())){
-                makeError(") excepted");
+                makeError(") excepted", it);
             }
             tree.add(")");
         }else if(Delimeters.SUB.equals(lex.getName())){
@@ -355,7 +401,7 @@ public class SyntaxAnalyser extends Analyser{
             tree.add(lexem.getName());
             dimension(it, tree.add("dimension"));
         }else{
-            makeError("unknown multiplier");
+            makeError("unknown multiplier", it);
         }
         tree.previous();
     }
@@ -367,7 +413,7 @@ public class SyntaxAnalyser extends Analyser{
             expression(it, tree.add("expression"));
             expressionsList(it, tree.add("expressionsList"));
             if (!Delimeters.SQUARE_BRACKET_E.equals(it.next().getName())) {
-                makeError("] excepted");
+                makeError("] excepted", it);
             }
             tree.add("]");
         }else{
@@ -440,11 +486,11 @@ public class SyntaxAnalyser extends Analyser{
 
             constant(it, tree.add("constant"));
             if(!Delimeters.STOP_LINE.equals(it.next().getName())){
-                makeError("; excepted");
+                makeError("; excepted", it);
             }
             tree.add(";");
         }else{
-            makeError("= excepted");
+            makeError("= excepted", it);
 
         }
         tree.previous();
@@ -465,7 +511,7 @@ public class SyntaxAnalyser extends Analyser{
         identifier(it, tree.add("identifier"));
         Lexem lex = it.previous();
         if(constIdentSet.contains(lex.getName()) || varIdentSet.contains(lex.getName())){
-            makeError("identifier " + lex.getName() + " already exist");
+            makeError("identifier " + lex.getName() + " already exist", it);
         }
         constIdentSet.add(lex.getName());
         it.next();
@@ -510,11 +556,11 @@ public class SyntaxAnalyser extends Analyser{
             tree.add(":");
             attribute(it, tree.add("attribute"));
             if(!Delimeters.STOP_LINE.equals(it.next().getName())){
-                makeError("; excepted");
+                makeError("; excepted", it);
             }
             tree.add(";");
         }else{
-            makeError(": excepted");
+            makeError(": excepted", it);
         }
         tree.previous();
     }
@@ -525,7 +571,7 @@ public class SyntaxAnalyser extends Analyser{
         identifier(it,  tree.add("identifier"));
         Lexem lex = it.previous();
         if(constIdentSet.contains(lex.getName()) || varIdentSet.contains(lex.getName())){
-            makeError("identifier " + lex.getName() + " already exist");
+            makeError("identifier " + lex.getName() + " already exist", it);
         }
         varIdentSet.add(lex.getName());
         it.next();
@@ -566,11 +612,11 @@ public class SyntaxAnalyser extends Analyser{
                 range(it, tree.add("range"));
                 rangesList(it, tree.add("rangesList"));
                 if(!Delimeters.SQUARE_BRACKET_E.equals(it.next().getName())){
-                    makeError("] excepted");
+                    makeError("] excepted", it);
                 }
                 tree.add("]");
             }else{
-                makeError(lex.getName() + " unknown attribute");
+                makeError(lex.getName() + " unknown attribute", it);
             }
         }
         tree.previous();
@@ -584,7 +630,7 @@ public class SyntaxAnalyser extends Analyser{
             tree.add("..");
             unsignedInteger(it, tree.add("unsignedInteger"));
         }else{
-            makeError(".. excepted");
+            makeError(".. excepted", it);
         }
         tree.previous();
     }
@@ -607,7 +653,7 @@ public class SyntaxAnalyser extends Analyser{
         tree.next(node);
         Lexem lex = it.next();
         if(!isConstant(lex.getCode())){
-            makeError(lex.getName() + " is not constant");
+            makeError(lex.getName() + " is not constant", it);
         }
         tree.add(lex.getName());
         tree.previous();

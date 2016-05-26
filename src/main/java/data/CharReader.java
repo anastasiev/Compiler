@@ -16,6 +16,7 @@ public class CharReader {
     private InputStreamReader reader;
     private ArrayList<Character> buf = new ArrayList<>();
 
+
     public CharReader(InputStream inputStream){
         reader = new InputStreamReader(inputStream);
     }
