@@ -96,7 +96,7 @@ public class SyntaxAnalyser extends Analyser{
     }
     private void block(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
         tree.next(node);
-        declarations(it, tree.add("declarations"));
+       // declarations(it, tree.add("declarations"));
         if(KeyWords.BEGIN.equals(it.next().getName())){
             tree.add("BEGIN");
 
@@ -309,25 +309,30 @@ public class SyntaxAnalyser extends Analyser{
     }
 
     private void expression(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{
+
         tree.next(node);
-        try {
-            if (Delimeters.SUB.equals(it.next().getName())) {
-                tree.add("-");
-                summand(it, tree.add("summand"));
-                summandList(it, tree.add("summandList"));
-            } else {
-                it.previous();
-                summand(it, tree.add("summand"));
-                summandList(it, tree.add("summandList"));
-            }
-        }catch (SAException ex){
-            if(!ex.isError()) {
-                it.previous();
-                tree.removeChain(node);
-            }else
-                throw ex;
-        }
+        multiplier(it, tree.add("multiplier"));
+        multipliersList(it, tree.add("multipliersList"));
         tree.previous();
+//        tree.next(node);
+//        try {
+//            if (Delimeters.SUB.equals(it.next().getName())) {
+//                tree.add("-");
+//                summand(it, tree.add("summand"));
+//                summandList(it, tree.add("summandList"));
+//            } else {
+//                it.previous();
+//                summand(it, tree.add("summand"));
+//                summandList(it, tree.add("summandList"));
+//            }
+//        }catch (SAException ex){
+//            if(!ex.isError()) {
+//                it.previous();
+//                tree.removeChain(node);
+//            }else
+//                throw ex;
+//        }
+//        tree.previous();
     }
 
     private void summand(ListIterator<Lexem> it, Node node)throws SAException, NoSuchElementException{

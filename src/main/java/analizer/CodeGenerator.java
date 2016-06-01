@@ -44,7 +44,11 @@ public class CodeGenerator {
         makeVar(currentNode, res);
         keys = res.keySet();
         for(String key: keys){
-            outLines.add(key + " DB " + "?");
+            if(KeyWords.SIGNAL.equals(res.get(key))) {
+                outLines.add(key + " DB " + "?");
+            }else{
+                outLines.add(key + " DD " + "?");
+            }
         }
         outLines.add("end SEGMENT");
     }
@@ -114,10 +118,10 @@ public class CodeGenerator {
     }
 
     private void makeFor(Node statement){
-        outLines.add("MOV AX, " + getLowLoop(statement));
+        getLowLoop(statement);
         String loopVarName = getLoopVarName(statement);
         outLines.add("MOV " + loopVarName + ", AX");
-        outLines.add("MOV AX, " + getHighLoop(statement));
+        getHighLoop(statement);
         outLines.add("CMP AX, " + loopVarName);
         String endLabel = labelGenerator.generate();
         outLines.add("JL " + endLabel);
@@ -173,19 +177,79 @@ public class CodeGenerator {
                         .getChildren().get(0).getInfo();
     }
 
-    private String getLowLoop(Node statement){
-        return statement.getChildren().get(3)
+    private void getLowLoop(Node statement){
+        Node multList = statement.getChildren().get(3)
+                .getChildren().get(0)
+                .getChildren().get(0)
+                .getChildren().get(1);
+
+        String lowVal = statement.getChildren().get(3)
                 .getChildren().get(0)
                 .getChildren().get(0)
                 .getChildren().get(0)
                 .getChildren().get(0).getInfo();
+
+        String loopVal = getLoopVarName(statement);
+
+        if(!multList.getChildren().isEmpty()){
+            String instr = multList.getChildren().get(0)
+                    .getChildren().get(0).getInfo();
+            if(instr.equals("/")){
+                String divVal = multList.getChildren().get(1).getChildren().get(0).getInfo();
+                outLines.add("MOV AX, " + lowVal);
+                outLines.add("DIV " + divVal);
+            }else if(instr.equals("MOD")){
+                String divVal = multList.getChildren().get(1).getChildren().get(0).getInfo();
+                outLines.add("MOV AX, " + lowVal);
+                outLines.add("DIV " + divVal);
+                outLines.add("MOV AL, AH");
+                outLines.add("XOR AH, AH");
+            }else if(instr.equals("*")){
+                String divVal = multList.getChildren().get(1).getChildren().get(0).getInfo();
+                outLines.add("MOV AX, " + lowVal);
+                outLines.add("MULT AX, " + divVal);
+            }
+
+        }else {
+            outLines.add("MOV AX, " + lowVal);
+        }
     }
-    private String getHighLoop(Node statement){
-        return statement.getChildren().get(3)
+    private void getHighLoop(Node statement){
+        String highVal =  statement.getChildren().get(3)
                 .getChildren().get(2)
                 .getChildren().get(0)
                 .getChildren().get(0)
                 .getChildren().get(0).getInfo();
+        Node multList = statement.getChildren().get(3)
+                .getChildren().get(2)
+                .getChildren().get(0)
+                .getChildren().get(1);
+        String loopVal = getLoopVarName(statement);
+
+        if(!multList.getChildren().isEmpty()){
+            String instr = multList.getChildren().get(0)
+                    .getChildren().get(0).getInfo();
+            if(instr.equals("/")){
+                String divVal = multList.getChildren().get(1).getChildren().get(0).getInfo();
+                outLines.add("MOV AX, " + highVal);
+                outLines.add("DIV " + divVal);
+            }else if(instr.equals("MOD")){
+                String divVal = multList.getChildren().get(1).getChildren().get(0).getInfo();
+                outLines.add("MOV AX, " + highVal);
+                outLines.add("DIV " + divVal);
+                outLines.add("MOV AH, AL");
+                outLines.add("XOR AH, AH");
+            }else if(instr.equals("*")){
+                String divVal = multList.getChildren().get(1).getChildren().get(0).getInfo();
+                outLines.add("MOV AX, " + highVal);
+                outLines.add("MULT AX, " + divVal );
+            }
+
+        }else {
+            outLines.add("MOV AX, " + highVal);
+        }
+
+
     }
     private String getLoopVarName(Node statement){
         return statement.getChildren().get(1).getInfo();
